@@ -1,0 +1,164 @@
+:root {
+    /* Colores base */
+    --page-background-light: #EBDDFF; /* Fondo de página un poquito más claro */
+    --main-text-color: #333; /* Color de texto principal (no usado en los cursos) */
+
+    /* Colores para cursos APROBADOS */
+    --approved-gradient-start: #FFB5E8; /* Rosa claro */
+    --approved-gradient-end: #FFD0F0;   /* Rosa un poco más claro */
+    --approved-text-dark: #A04080;      /* Rosa oscuro para el texto */
+    --approved-border-dark: #E09ACF;    /* Rosa oscuro para el borde */
+
+    /* Colores para cursos DESBLOQUEADOS */
+    --unlocked-gradient-start: #AFCBFF; /* Azul claro */
+    --unlocked-gradient-end: #C0E0FF;   /* Azul un poco más claro */
+    --unlocked-text-dark: #4060A0;      /* Azul oscuro para el texto */
+    --unlocked-border-dark: #90A8E0;    /* Azul oscuro para el borde */
+
+    /* Colores para cursos BLOQUEADOS */
+    --locked-background: var(--page-background-light); /* Fondo igual al de la página */
+    --locked-text-color-darker: #B088D0; /* Morado oscuro para el texto (mismo que el borde) */
+    --locked-border-dark: #B088D0;      /* Morado oscuro para el borde segmentado */
+
+    /* Colores para semestres */
+    --semester-background-darker: #DCCEFF; /* Fondo de semestre un poco más oscuro que el fondo de la página */
+    --semester-border-dark: #B088D0;    /* Morado oscuro para el borde del semestre */
+
+    /* Color para el título principal */
+    --title-color: #6A0DAD; /* Morado oscuro */
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--page-background-light);
+    color: var(--main-text-color);
+    line-height: 1.6;
+}
+
+#course-tracker-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+h1 {
+    color: var(--title-color);
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+#course-tracker {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+.semester {
+    background-color: var(--semester-background-darker); /* Fondo del semestre un poco más oscuro */
+    border-radius: 12px; /* Más redondeado */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+    padding: 20px;
+    flex: 1 1 calc(33% - 40px); /* Ajuste para 3 columnas en pantallas grandes */
+    min-width: 280px; /* Ancho mínimo para columna de semestre */
+    box-sizing: border-box;
+    border: 2px solid var(--semester-border-dark); /* Borde más oscuro para el semestre */
+}
+
+.semester h2 {
+    color: var(--title-color);
+    margin-top: 0;
+    border-bottom: 2px solid var(--title-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+.course {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px; /* Bordes redondeados para los cursos */
+    cursor: pointer;
+    transition: background 0.3s ease, text-decoration 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    font-size: 0.95rem;
+    font-weight: bold;
+    word-wrap: break-word; /* Asegura que los nombres de cursos largos se ajusten */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra por defecto para todos los cursos */
+}
+
+.course.locked {
+    background-color: var(--locked-background);
+    color: var(--locked-text-color-darker); /* ¡El cambio está aquí! */
+    cursor: not-allowed;
+    text-decoration: none;
+    opacity: 0.8;
+    border: 2px dashed var(--locked-border-dark);
+}
+
+.course.unlocked {
+    background: linear-gradient(to right, var(--unlocked-gradient-start), var(--unlocked-gradient-end));
+    color: var(--unlocked-text-dark);
+    border: 2px solid var(--unlocked-border-dark);
+}
+
+.course.approved {
+    background: linear-gradient(to right, var(--approved-gradient-start), var(--approved-gradient-end));
+    color: var(--approved-text-dark);
+    text-decoration: line-through;
+    border: 2px solid var(--approved-border-dark);
+}
+
+.course:not(.locked):hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-3px);
+}
+
+/* Ajustes responsivos */
+@media (max-width: 1024px) {
+    .semester {
+        flex: 1 1 calc(50% - 40px);
+    }
+    h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .semester {
+        flex: 1 1 calc(100% - 40px);
+        padding: 15px;
+    }
+
+    .semester h2 {
+        font-size: 1.6rem;
+    }
+
+    .course {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    #course-tracker-container {
+        padding: 15px;
+    }
+
+    #course-tracker {
+        gap: 15px;
+    }
+}
