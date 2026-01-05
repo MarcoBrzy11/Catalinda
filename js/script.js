@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DATOS DEL PROYECTO ---
+    // --- DATOS DE CURSOS ---
     const courses = [
         // Semestre 1
         { id: 'c1', name: 'GESTION I', semester: 1, prerequisites: [] },
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'c58', name: 'PRACTICA PROFESIONAL', semester: 10, prerequisites: ['c45'] }
     ];
 
-    // Datos para el horario
+    // Datos de tiempo para el horario
     const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
     const timeSlots = [
         '8:00 - 9:30',
@@ -93,33 +93,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const semesterButtonsContainer = document.getElementById('semester-buttons-container');
     const clearScheduleBtn = document.getElementById('clear-schedule-btn');
 
-    // --- ESTADOS DE LA APLICACIÓN ---
+    // --- ESTADOS ---
     let approvedCourses = new Set();
-    let currentSemesterFilter = '1'; 
-    let scheduleData = {}; 
+    let checkedSidebarCourses = new Set(); // Para los checks del sidebar
+    let currentSemesterFilter = '1';
+    let scheduleData = {}; // Estructura: { semester: { day: { slot: [ {course, professor} ] } } }
     let draggedCourseId = null;
 
-    // --- LÓGICA DE ALMACENAMIENTO (LOCAL STORAGE) ---
-    const loadProgress = () => {
+    // --- LOCAL STORAGE ---
+    const loadData = () => {
+        // Cargar Progreso
         const savedProgress = localStorage.getItem('approvedCourses');
-        if (savedProgress) {
-            approvedCourses = new Set(JSON.parse(savedProgress));
-        }
-    };
-    const saveProgress = () => {
-        localStorage.setItem('approvedCourses', JSON.stringify(Array.from(approvedCourses)));
-    };
-    const loadSchedule = () => {
+        if (savedProgress) approvedCourses = new Set(JSON.parse(savedProgress));
+
+        // Cargar Checks del Sidebar
+        const savedChecks = localStorage.getItem('checkedSidebarCourses');
+        if (savedChecks) checkedSidebarCourses = new Set(JSON.parse(savedChecks));
+
+        // Cargar Horario
         const savedSchedule = localStorage.getItem('scheduleData');
-        if (savedSchedule) {
-            scheduleData = JSON.parse(savedSchedule);
-        }
-    };
-    const saveSchedule = () => {
-        localStorage.setItem('scheduleData', JSON.stringify(scheduleData));
+        if (savedSchedule) scheduleData = JSON.parse(savedSchedule);
     };
 
-    // --- LÓGICA DE VISTAS Y NAVEGACIÓN ---
+    const saveData = (type) => {
+        if (type === 'progress') {
+            localStorage.setItem('approvedCourses', JSON.stringify(Array.from(approvedCourses)));
+        } else if (type === 'checks') {
+            localStorage.setItem('checkedSidebarCourses', JSON.stringify(Array.from(checkedSidebarCourses)));
+        } else if (type === 'schedule') {
+            localStorage.setItem('scheduleData', JSON.stringify(scheduleData));
+        }
+    };
+
+    // --- NAVEGACIÓN ---
     const showView = (viewToShow) => {
         progressView.classList.remove('active-view');
         scheduleView.classList.remove('active-view');
@@ -132,26 +138,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewToShow === 'progress') {
             progressView.classList.add('active-view');
             showProgressBtn.classList.add('active');
-            semesterButtonsContainer.classList.add('hidden'); 
+            semesterButtonsContainer.classList.add('hidden');
             renderCourses();
-        } else { 
+        } else {
             scheduleView.classList.add('active-view');
             showScheduleBtn.classList.add('active');
-            semesterButtonsContainer.classList.remove('hidden'); 
-            renderSemesterButtons(); 
+            semesterButtonsContainer.classList.remove('hidden');
+            renderSemesterButtons();
             renderSchedule();
             renderDraggableCourses();
         }
     };
+
     showProgressBtn.addEventListener('click', () => showView('progress'));
     showScheduleBtn.addEventListener('click', () => showView('schedule'));
 
-    // --- FUNCIONES DEL RASTREADOR DE PROGRESO ---
+    // --- FUNCIONES RASTREADOR (MALLA) ---
     const isCourseUnlocked = (courseId) => {
         const course = courses.find(c => c.id === courseId);
         if (!course) return false;
         return course.prerequisites.length === 0 || course.prerequisites.every(prereqId => approvedCourses.has(prereqId));
     };
+
     const unapproveDependencies = (courseId) => {
         const dependentCourses = courses.filter(course => course.prerequisites.includes(courseId));
         dependentCourses.forEach(dependentCourse => {
@@ -161,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     };
+
     const toggleCourseStatus = (courseId) => {
         if (approvedCourses.has(courseId)) {
             approvedCourses.delete(courseId);
@@ -168,13 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             if (isCourseUnlocked(courseId)) {
                 approvedCourses.add(courseId);
-            } else {
-                return;
-            }
+            } else { return; }
         }
-        saveProgress();
+        saveData('progress');
         renderCourses();
     };
+
     const renderCourses = () => {
         courseTrackerDiv.innerHTML = '';
         const coursesBySemester = courses.reduce((acc, course) => {
@@ -182,8 +190,8 @@ document.addEventListener('DOMContentLoaded', () => {
             acc[course.semester].push(course);
             return acc;
         }, {});
-        const sortedSemesters = Object.keys(coursesBySemester).sort((a, b) => a - b);
-        sortedSemesters.forEach(semesterNum => {
+
+        Object.keys(coursesBySemester).sort((a, b) => a - b).forEach(semesterNum => {
             const semesterDiv = document.createElement('div');
             semesterDiv.classList.add('semester');
             semesterDiv.innerHTML = `<h2>Semestre ${semesterNum}</h2>`;
@@ -193,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 courseDiv.dataset.id = course.id;
                 courseDiv.textContent = course.name;
                 courseDiv.addEventListener('click', () => toggleCourseStatus(course.id));
+                
                 if (approvedCourses.has(course.id)) {
                     courseDiv.classList.add('approved');
                 } else if (isCourseUnlocked(course.id)) {
@@ -206,28 +215,101 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- FUNCIONES DEL HORARIO ---
+    // --- FUNCIONES HORARIO ---
+    
+    // Renderizar botones de semestre en la navbar
+    const renderSemesterButtons = () => {
+        semesterButtonsContainer.innerHTML = '';
+        const uniqueSemesters = [...new Set(courses.map(c => c.semester))].sort((a, b) => a - b);
+
+        uniqueSemesters.forEach(semester => {
+            const btn = document.createElement('button');
+            btn.classList.add('semester-button');
+            btn.textContent = `Semestre ${semester}`;
+            if (semester.toString() === currentSemesterFilter) btn.classList.add('active');
+            
+            btn.addEventListener('click', () => {
+                currentSemesterFilter = semester.toString();
+                renderSemesterButtons(); // Re-renderizar para actualizar clase active
+                renderSchedule();
+                renderDraggableCourses();
+            });
+            semesterButtonsContainer.appendChild(btn);
+        });
+    };
+
+    // Renderizar Sidebar de Ramos
+    const renderDraggableCourses = () => {
+        availableCoursesSidebar.innerHTML = '';
+        const semNum = parseInt(currentSemesterFilter);
+        const semesterCourses = courses.filter(c => c.semester === semNum);
+
+        if (semesterCourses.length > 0) {
+            const header = document.createElement('h3');
+            header.textContent = `Semestre ${semNum}`;
+            availableCoursesSidebar.appendChild(header);
+
+            semesterCourses.forEach(course => {
+                const courseDiv = document.createElement('div');
+                courseDiv.classList.add('course-draggable');
+                
+                // Verificar checkbox
+                const isChecked = checkedSidebarCourses.has(course.id);
+                if (isChecked) courseDiv.classList.add('sidebar-checked');
+
+                // Checkbox
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'sidebar-checkbox';
+                checkbox.checked = isChecked;
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) checkedSidebarCourses.add(course.id);
+                    else checkedSidebarCourses.delete(course.id);
+                    saveData('checks');
+                    renderDraggableCourses();
+                });
+                // Evitar drag al hacer clic en el checkbox
+                checkbox.addEventListener('mousedown', (e) => e.stopPropagation());
+
+                // Nombre
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = course.name;
+
+                courseDiv.appendChild(nameSpan);
+                courseDiv.appendChild(checkbox);
+
+                // Drag Events
+                courseDiv.draggable = true;
+                courseDiv.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', course.id);
+                });
+
+                availableCoursesSidebar.appendChild(courseDiv);
+            });
+        }
+    };
+
+    // Renderizar Cuadrícula
     const renderSchedule = () => {
         scheduleGrid.innerHTML = '';
         scheduleGrid.style.gridTemplateColumns = `auto repeat(${days.length}, 1fr)`;
-        
-        // Inicializar el objeto de horario para el semestre actual si no existe
-        if (!scheduleData[currentSemesterFilter]) {
-            scheduleData[currentSemesterFilter] = {};
-        }
 
-        // Encabezados de días
-        const cornerHeader = document.createElement('div');
-        cornerHeader.classList.add('schedule-header-cell');
-        scheduleGrid.appendChild(cornerHeader);
+        // Inicilizar datos para este semestre si no existen
+        if (!scheduleData[currentSemesterFilter]) scheduleData[currentSemesterFilter] = {};
+
+        // Headers
+        const corner = document.createElement('div');
+        corner.classList.add('schedule-header-cell');
+        scheduleGrid.appendChild(corner);
+
         days.forEach(day => {
-            const headerCell = document.createElement('div');
-            headerCell.classList.add('schedule-header-cell');
-            headerCell.textContent = day;
-            scheduleGrid.appendChild(headerCell);
+            const cell = document.createElement('div');
+            cell.classList.add('schedule-header-cell');
+            cell.textContent = day;
+            scheduleGrid.appendChild(cell);
         });
 
-        // Celdas de tiempo y horario
+        // Filas de tiempo
         timeSlots.forEach(timeSlot => {
             const timeHeader = document.createElement('div');
             timeHeader.classList.add('time-slot-header');
@@ -237,101 +319,71 @@ document.addEventListener('DOMContentLoaded', () => {
             days.forEach(day => {
                 const cell = document.createElement('div');
                 cell.classList.add('schedule-cell');
-                cell.dataset.day = day;
-                cell.dataset.time = timeSlot;
                 
-                // Eventos de Drag & Drop
+                // Drop Events
                 cell.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     cell.classList.add('drag-over');
                 });
-                cell.addEventListener('dragleave', () => {
-                    cell.classList.remove('drag-over');
-                });
+                cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
                 cell.addEventListener('drop', (e) => {
                     e.preventDefault();
                     cell.classList.remove('drag-over');
-                    const courseId = e.dataTransfer.getData('text/plain');
-                    const course = courses.find(c => c.id === courseId);
-                    if (course) {
-                        // Guardar en el objeto de datos del semestre actual (permite repetición)
-                        if (!scheduleData[currentSemesterFilter][day]) {
-                            scheduleData[currentSemesterFilter][day] = {};
-                        }
-                        if (!scheduleData[currentSemesterFilter][day][timeSlot]) {
-                            scheduleData[currentSemesterFilter][day][timeSlot] = [];
-                        }
-                        // CAMBIO: Guardar objeto con curso y profesor vacío
+                    const cId = e.dataTransfer.getData('text/plain');
+                    const courseObj = courses.find(c => c.id === cId);
+                    
+                    if (courseObj) {
+                        // Estructura de datos
+                        if (!scheduleData[currentSemesterFilter][day]) scheduleData[currentSemesterFilter][day] = {};
+                        if (!scheduleData[currentSemesterFilter][day][timeSlot]) scheduleData[currentSemesterFilter][day][timeSlot] = [];
+                        
+                        // Añadir curso + profesor vacío
                         scheduleData[currentSemesterFilter][day][timeSlot].push({
-                            course: course,
+                            course: courseObj,
                             professor: ''
                         });
-                        
-                        saveSchedule();
+                        saveData('schedule');
                         renderSchedule();
-                        renderDraggableCourses(); // Re-renderizar para actualizar la lista de arrastrables
                     }
                 });
-                
-                // Renderizar cursos si ya están programados para el semestre actual
-                if (scheduleData[currentSemesterFilter] && 
-                    scheduleData[currentSemesterFilter][day] && 
-                    scheduleData[currentSemesterFilter][day][timeSlot]) {
-                    
-                    const itemsInCell = Array.isArray(scheduleData[currentSemesterFilter][day][timeSlot]) ? 
-                                          scheduleData[currentSemesterFilter][day][timeSlot] : 
-                                          [scheduleData[currentSemesterFilter][day][timeSlot]]; // Asegurarse de que sea un array
-                    
-                    itemsInCell.forEach((item, index) => {
-                        // MIGRACIÓN SOBRE LA MARCHA: Si es formato antiguo (sin 'professor'), convertirlo
-                        let currentItem = item;
-                        if (item.id && !item.course) {
-                             currentItem = { course: item, professor: '' };
-                             // Actualizar en el array para futuras referencias
-                             scheduleData[currentSemesterFilter][day][timeSlot][index] = currentItem;
-                        }
 
-                        const courseDiv = document.createElement('div');
-                        courseDiv.classList.add('scheduled-course');
+                // Renderizar items existentes
+                const currentData = scheduleData[currentSemesterFilter];
+                if (currentData && currentData[day] && currentData[day][timeSlot]) {
+                    currentData[day][timeSlot].forEach((item, idx) => {
+                        // Migración simple si datos antiguos
+                        if (!item.course && item.id) item = { course: item, professor: '' };
+
+                        const div = document.createElement('div');
+                        div.classList.add('scheduled-course');
                         
-                        const courseNameSpan = document.createElement('div');
-                        courseNameSpan.textContent = currentItem.course.name;
-                        courseDiv.appendChild(courseNameSpan);
+                        const title = document.createElement('div');
+                        title.textContent = item.course.name;
+                        div.appendChild(title);
 
-                        // INPUT PROFESOR
-                        const profInput = document.createElement('input');
-                        profInput.type = 'text';
-                        profInput.classList.add('professor-input');
-                        profInput.placeholder = 'Profesor';
-                        profInput.value = currentItem.professor || '';
-                        // Evitar que el input inicie arrastre del div padre
-                        profInput.addEventListener('mousedown', (e) => e.stopPropagation());
-                        profInput.addEventListener('change', (e) => {
-                            currentItem.professor = e.target.value;
-                            saveSchedule();
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.classList.add('professor-input');
+                        input.placeholder = 'Profesor';
+                        input.value = item.professor || '';
+                        input.addEventListener('mousedown', (e) => e.stopPropagation()); // permitir escribir sin arrastrar
+                        input.addEventListener('change', (e) => {
+                            item.professor = e.target.value;
+                            saveData('schedule');
                         });
-                        courseDiv.appendChild(profInput);
-                        
-                        // Botón para eliminar
+                        div.appendChild(input);
+
                         const removeBtn = document.createElement('button');
-                        removeBtn.textContent = '×';
+                        removeBtn.innerHTML = '×';
                         removeBtn.classList.add('remove-btn');
                         removeBtn.addEventListener('click', () => {
-                            // Eliminar solo esta instancia del curso
-                            if (Array.isArray(scheduleData[currentSemesterFilter][day][timeSlot])) {
-                                scheduleData[currentSemesterFilter][day][timeSlot].splice(index, 1);
-                                if (scheduleData[currentSemesterFilter][day][timeSlot].length === 0) {
-                                    delete scheduleData[currentSemesterFilter][day][timeSlot];
-                                }
-                            } else {
-                                delete scheduleData[currentSemesterFilter][day][timeSlot];
-                            }
-                            saveSchedule();
+                            currentData[day][timeSlot].splice(idx, 1);
+                            saveData('schedule');
                             renderSchedule();
-                            renderDraggableCourses();
                         });
-                        courseDiv.appendChild(removeBtn);
-                        cell.appendChild(courseDiv);
+                        div.appendChild(removeBtn);
+
+                        cell.appendChild(div);
                     });
                 }
                 scheduleGrid.appendChild(cell);
@@ -339,106 +391,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const renderDraggableCourses = () => {
-        availableCoursesSidebar.innerHTML = '';
-        
-        let coursesToDisplay = courses;
-        // Filtrar cursos por el semestre seleccionado
-        if (currentSemesterFilter !== 'all') {
-            coursesToDisplay = courses.filter(course => course.semester === parseInt(currentSemesterFilter));
-        }
-
-        // Agrupar cursos por semestre de la lista ya filtrada
-        const coursesBySemesterForSidebar = coursesToDisplay.reduce((acc, course) => {
-            if (!acc[course.semester]) {
-                acc[course.semester] = [];
-            }
-            acc[course.semester].push(course);
-            return acc;
-        }, {});
-
-        const sortedSemestersForSidebar = Object.keys(coursesBySemesterForSidebar).sort((a, b) => a - b);
-
-        sortedSemestersForSidebar.forEach(semesterNum => {
-            // Solo mostrar el encabezado del semestre si hay cursos para ese semestre en la lista filtrada
-            if (coursesBySemesterForSidebar[semesterNum] && coursesBySemesterForSidebar[semesterNum].length > 0) {
-                const semesterHeader = document.createElement('h4');
-                semesterHeader.textContent = `Semestre ${semesterNum}`;
-                semesterHeader.style.marginTop = '15px';
-                semesterHeader.style.marginBottom = '10px';
-                semesterHeader.style.textAlign = 'center';
-                semesterHeader.style.color = 'var(--title-color)';
-                availableCoursesSidebar.appendChild(semesterHeader);
-
-                coursesBySemesterForSidebar[semesterNum].forEach(course => {
-                    const courseDiv = document.createElement('div');
-                    courseDiv.classList.add('course-draggable');
-                    courseDiv.textContent = course.name;
-                    courseDiv.draggable = true;
-                    courseDiv.dataset.id = course.id;
-                    courseDiv.addEventListener('dragstart', (e) => {
-                        e.dataTransfer.setData('text/plain', e.target.dataset.id);
-                        draggedCourseId = e.target.dataset.id;
-                    });
-                    availableCoursesSidebar.appendChild(courseDiv);
-                });
-            }
-        });
-    };
-
-    // Lógica para los botones de semestre en la navegación
-    const renderSemesterButtons = () => {
-        semesterButtonsContainer.innerHTML = ''; // Limpiar botones existentes
-        const uniqueSemesters = [...new Set(courses.map(c => c.semester))].sort((a, b) => a - b);
-        
-        // Se eliminó el botón "Todos"
-
-        uniqueSemesters.forEach(semester => {
-            const semesterBtn = document.createElement('button');
-            semesterBtn.classList.add('semester-button');
-            semesterBtn.textContent = `Semestre ${semester}`;
-            semesterBtn.dataset.semester = semester;
-            semesterBtn.addEventListener('click', (e) => {
-                currentSemesterFilter = e.target.dataset.semester;
-                updateActiveSemesterButton();
-                renderSchedule();
-                renderDraggableCourses();
-            });
-            semesterButtonsContainer.appendChild(semesterBtn);
-        });
-        updateActiveSemesterButton(); // Establecer el botón activo al renderizar
-    };
-
-    const updateActiveSemesterButton = () => {
-        document.querySelectorAll('.semester-button').forEach(button => {
-            if (button.dataset.semester === currentSemesterFilter) {
-                button.classList.add('active');
-            } else {
-                button.classList.remove('active');
-            }
-        });
-    };
-
+    // Botón Limpiar
     clearScheduleBtn.addEventListener('click', () => {
-        const confirmClear = confirm(`¿Estás seguro de que quieres borrar el horario del Semestre ${currentSemesterFilter === 'all' ? 'actual' : currentSemesterFilter}? Esta acción no se puede deshacer.`);
-        if (confirmClear) {
-            if (currentSemesterFilter === 'all') {
-                scheduleData = {};
-            } else {
-                delete scheduleData[currentSemesterFilter];
-            }
-            saveSchedule();
+        if (confirm('¿Borrar todo el horario del semestre ' + currentSemesterFilter + '?')) {
+            delete scheduleData[currentSemesterFilter];
+            saveData('schedule');
             renderSchedule();
-            renderDraggableCourses();
         }
     });
 
-    // --- INICIALIZACIÓN ---
-    loadProgress();
-    loadSchedule();
-    // No se llama populateSemesterSelect() aquí, ya que los botones se renderizan en showView('schedule')
-    showView('progress'); // Iniciar en la vista del rastreador
+    // --- INIT ---
+    loadData();
+    showView('progress'); // Iniciar en Malla
 });
-    showView('progress'); // Iniciar en la vista del rastreador
-});
-
