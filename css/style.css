@@ -362,6 +362,30 @@ h1 {
     text-align: center;
 }
 
+/* Nuevo estilo para el input del profesor */
+.scheduled-course input.professor-input {
+    margin-top: 4px;
+    width: 90%;
+    padding: 2px 4px;
+    font-size: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.3);
+    color: var(--unlocked-text-dark);
+    text-align: center;
+    font-family: inherit;
+}
+
+.scheduled-course input.professor-input::placeholder {
+    color: rgba(64, 96, 160, 0.7); /* Azul oscuro con transparencia para placeholder */
+}
+
+.scheduled-course input.professor-input:focus {
+    outline: none;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-color: var(--unlocked-text-dark);
+}
+
 .scheduled-course .remove-btn {
     background: none;
     border: none;
