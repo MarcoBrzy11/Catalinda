@@ -495,3 +495,29 @@ h1 {
         flex-direction: column;
         gap: 10px;
     }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    #app-container {
+        padding: 10px;
+    }
+
+    #course-tracker {
+        gap: 15px;
+    }
+
+    .nav-button,
+    #semester-buttons-container .semester-button {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+
+    .schedule-footer button {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
