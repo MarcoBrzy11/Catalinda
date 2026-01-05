@@ -7,10 +7,40 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <main id="course-tracker-container">
+    <main id="app-container">
         <h1>Ingeniería en Comercio Internacional</h1>
-        <div id="course-tracker">
-            <!-- Los cursos se renderizarán aquí por JavaScript -->
+
+        <nav class="navigation-tabs">
+            <button id="show-progress-btn" class="nav-button active">Rastreador de Progreso</button>
+            <button id="show-schedule-btn" class="nav-button">Horario</button>
+            <div id="semester-buttons-container" class="hidden">
+                <!-- Los botones de semestre se renderizarán aquí dinámicamente por JavaScript -->
+            </div>
+        </nav>
+
+        <div id="progress-view" class="view-container active-view">
+            <div id="course-tracker">
+                <!-- Los cursos se renderizarán aquí por JavaScript -->
+            </div>
+        </div>
+
+        <div id="schedule-view" class="view-container hidden-view">
+            <div class="schedule-content">
+                <div class="draggable-courses-sidebar">
+                    <h3>Ramos Disponibles</h3>
+                    <div id="available-courses">
+                        <!-- Ramos arrastrables se renderizarán aquí -->
+                    </div>
+                </div>
+                <div class="schedule-grid-container">
+                    <div id="schedule-grid">
+                        <!-- La cuadrícula del horario se renderizará aquí -->
+                    </div>
+                </div>
+            </div>
+            <div class="schedule-footer">
+                <button id="clear-schedule-btn">Limpiar Horario</button>
+            </div>
         </div>
     </main>
     <script src="js/script.js"></script>

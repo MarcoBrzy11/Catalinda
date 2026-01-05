@@ -6,7 +6,7 @@
     /* Colores para cursos APROBADOS */
     --approved-gradient-start: #FFB5E8; /* Rosa claro */
     --approved-gradient-end: #FFD0F0;   /* Rosa un poco más claro */
-    --approved-text-dark: #A04080;      /* Rosa oscuro para el texto */
+    --approved-text-dark: #D85090;      /* Rosa oscuro más vibrante para el texto y título (solo para cursos aprobados) */
     --approved-border-dark: #E09ACF;    /* Rosa oscuro para el borde */
 
     /* Colores para cursos DESBLOQUEADOS */
@@ -24,8 +24,25 @@
     --semester-background-darker: #DCCEFF; /* Fondo de semestre un poco más oscuro que el fondo de la página */
     --semester-border-dark: #B088D0;    /* Morado oscuro para el borde del semestre */
 
-    /* Color para el título principal */
-    --title-color: #6A0DAD; /* Morado oscuro */
+    /* Color para el título principal - REVERTIDO A MORADO OSCURO */
+    --title-color: #6A0DAD; /* Morado oscuro original */
+
+    /* Nuevos colores para el horario */
+    --schedule-header-bg: var(--title-color); /* Morado oscuro para encabezados de horario */
+    --schedule-cell-bg: var(--page-background-light);   /* Fondo de celda de horario (color de página) */
+    --schedule-cell-border: var(--semester-border-dark);  /* Borde de celda de horario (morado oscuro) */
+    --drag-over-color: #D0FFD0;    /* Verde claro al arrastrar sobre una celda */
+    --draggable-course-bg: var(--unlocked-gradient-start); /* Azul claro para ramos arrastrables */
+    --draggable-course-border: var(--unlocked-border-dark); /* Borde para ramos arrastrables */
+    --nav-button-active-bg: var(--title-color); /* Color activo para botón de navegación (morado oscuro) */
+    --nav-button-active-text: #fff;
+    --nav-button-inactive-bg: #E0E0E0;
+    --nav-button-inactive-text: var(--main-text-color);
+
+    /* Nuevos colores para botones de semestre - REVERTIDOS A MORADO */
+    --semester-button-bg: #C0A0E0; /* Un morado intermedio */
+    --semester-button-text: #fff;
+    --semester-button-active-bg: #8A5BB0; /* Morado más oscuro para el activo */
 }
 
 body {
@@ -37,9 +54,9 @@ body {
     line-height: 1.6;
 }
 
-#course-tracker-container {
+#app-container {
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
@@ -52,22 +69,113 @@ h1 {
     text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
 
+/* --- Navegación de Vistas --- */
+.navigation-tabs {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los botones se envuelvan */
+    justify-content: center;
+    margin-bottom: 30px;
+    gap: 15px; /* Espacio entre todos los botones */
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.nav-button {
+    padding: 12px 25px; /* Revertido al tamaño original */
+    border: none;
+    border-radius: 8px; /* Revertido al tamaño original */
+    cursor: pointer;
+    font-size: 1.1rem; /* Revertido al tamaño original */
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Revertido al tamaño original */
+    background-color: var(--semester-button-bg); /* Usar color de semestre */
+    color: var(--semester-button-text); /* Usar color de texto de semestre */
+}
+
+.nav-button:hover:not(.active) {
+    background-color: #A080C0; /* Tono de morado más oscuro para hover (como semester-button) */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Ajustado para coincidir con semester-button */
+}
+
+.nav-button.active {
+    background-color: var(--semester-button-active-bg); /* Usar color activo de semestre */
+    color: var(--semester-button-text); /* Mantener el color de texto de semestre */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Ajustado para coincidir con semester-button */
+}
+
+/* Contenedor para los botones de semestre */
+#semester-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px; /* Espacio entre los botones de semestre */
+    margin-top: 10px; /* Espacio entre los botones principales y los de semestre */
+    width: 100%; /* Ocupa todo el ancho disponible */
+}
+
+#semester-buttons-container .semester-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+    background-color: var(--semester-button-bg);
+    color: var(--semester-button-text);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+#semester-buttons-container .semester-button:hover:not(.active) {
+    background-color: #A080C0; /* Tono de morado más oscuro para hover */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+#semester-buttons-container .semester-button.active {
+    background-color: var(--semester-button-active-bg);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Clase para ocultar elementos */
+.hidden {
+    display: none !important;
+}
+
+/* --- Contenedores de Vista --- */
+.view-container {
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    background-color: var(--semester-background-darker); /* Fondo de las vistas igual al de los semestres */
+}
+
+.hidden-view {
+    display: none;
+}
+
+.active-view {
+    display: block;
+}
+
+/* --- Estilos del Rastreador de Progreso (existentes, ajustados) --- */
 #course-tracker {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 20px;
+    padding: 0;
 }
 
 .semester {
-    background-color: var(--semester-background-darker); /* Fondo del semestre un poco más oscuro */
-    border-radius: 12px; /* Más redondeado */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+    background-color: var(--semester-background-darker);
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     padding: 20px;
-    flex: 1 1 calc(33% - 40px); /* Ajuste para 3 columnas en pantallas grandes */
-    min-width: 280px; /* Ancho mínimo para columna de semestre */
+    flex: 1 1 calc(33% - 40px);
+    min-width: 280px;
     box-sizing: border-box;
-    border: 2px solid var(--semester-border-dark); /* Borde más oscuro para el semestre */
+    border: 2px solid var(--semester-border-dark);
 }
 
 .semester h2 {
@@ -83,18 +191,18 @@ h1 {
 .course {
     padding: 12px 15px;
     margin-bottom: 10px;
-    border-radius: 8px; /* Bordes redondeados para los cursos */
+    border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s ease, text-decoration 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
     font-size: 0.95rem;
     font-weight: bold;
-    word-wrap: break-word; /* Asegura que los nombres de cursos largos se ajusten */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra por defecto para todos los cursos */
+    word-wrap: break-word;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .course.locked {
     background-color: var(--locked-background);
-    color: var(--locked-text-color-darker); /* ¡El cambio está aquí! */
+    color: var(--locked-text-color-darker);
     cursor: not-allowed;
     text-decoration: none;
     opacity: 0.8;
@@ -119,13 +227,224 @@ h1 {
     transform: translateY(-3px);
 }
 
-/* Ajustes responsivos */
+/* --- Estilos del Horario --- */
+/* schedule-controls ya no contiene el select de semestre */
+.schedule-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.schedule-content {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.draggable-courses-sidebar {
+    flex: 0 0 250px;
+    background-color: var(--page-background-light); /* Fondo difuminado */
+    border-radius: 8px; /* Redondear esquinas */
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    align-self: flex-start;
+    border: 2px solid var(--semester-border-dark); /* Añadir borde para consistencia */
+}
+
+.draggable-courses-sidebar h3 {
+    color: var(--title-color); /* Morado oscuro para el título de la barra lateral */
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--title-color);
+    padding-bottom: 10px;
+}
+
+#available-courses .course-draggable {
+    padding: 10px;
+    margin-bottom: 8px;
+    /* Usar el color azul de los cursos desbloqueados */
+    background: linear-gradient(to right, var(--unlocked-gradient-start), var(--unlocked-gradient-end));
+    border: 1px solid var(--unlocked-border-dark);
+    border-radius: 5px;
+    cursor: grab;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#available-courses .course-draggable:hover {
+    background-color: #90B0E0; /* Un tono más oscuro del azul para hover */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.schedule-grid-container {
+    flex: 1;
+    overflow-x: auto;
+    background-color: var(--page-background-light); /* Fondo difuminado */
+    border-radius: 12px; /* Redondear esquinas del contenedor principal del horario */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    border: 2px solid var(--semester-border-dark);
+}
+
+#schedule-grid {
+    display: grid;
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 700px;
+}
+
+.schedule-header-cell {
+    background-color: var(--schedule-header-bg); /* Morado oscuro para los encabezados del horario */
+    color: #fff;
+    font-weight: bold;
+    padding: 10px 5px;
+    text-align: center;
+    border: 1px solid #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-radius: 8px; /* Redondear esquinas de las celdas de encabezado */
+}
+
+.time-slot-header {
+    background-color: var(--schedule-header-bg); /* Morado oscuro para los encabezados de tiempo */
+    color: #fff;
+    font-weight: bold;
+    padding: 10px 5px;
+    text-align: center;
+    border: 1px solid #fff;
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    border-radius: 8px; /* Redondear esquinas de las celdas de encabezado */
+}
+
+.schedule-cell {
+    background-color: var(--schedule-cell-bg);
+    border: 1px solid var(--schedule-cell-border);
+    padding: 2px;
+    min-height: 50px;
+    text-align: center;
+    position: relative;
+    transition: background-color 0.2s ease;
+    border-radius: 8px; /* Redondear esquinas de las celdas individuales */
+}
+
+.schedule-cell.drag-over {
+    background-color: var(--drag-over-color);
+    border: 2px dashed var(--title-color); /* Borde morado oscuro al arrastrar */
+}
+
+.scheduled-course {
+    background: linear-gradient(to right, var(--unlocked-gradient-start), var(--unlocked-gradient-end));
+    color: var(--unlocked-text-dark);
+    border: 1px solid var(--unlocked-border-dark);
+    border-radius: 5px;
+    padding: 5px;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    cursor: grab;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.scheduled-course .remove-btn {
+    background: none;
+    border: none;
+    color: var(--unlocked-text-dark);
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 5px;
+    padding: 0;
+    line-height: 1;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+}
+
+.scheduled-course .remove-btn:hover {
+    opacity: 1;
+    color: #D32F2F;
+}
+
+/* Estilos para el nuevo pie de horario */
+.schedule-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.schedule-footer button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background-color: var(--title-color); /* Morado oscuro para el botón de limpiar */
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.schedule-footer button:hover {
+    background-color: #5A0A9D; /* Un tono más oscuro del morado para hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+/* --- Ajustes Responsivos --- */
+@media (max-width: 1200px) {
+    #app-container {
+        padding: 15px;
+    }
+    .navigation-tabs {
+        flex-direction: column;
+        gap: 10px;
+    }
+    #semester-buttons-container {
+        margin-top: 10px;
+    }
+    .schedule-content {
+        flex-direction: column;
+    }
+    .draggable-courses-sidebar {
+        flex: 0 0 auto;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    .schedule-grid-container {
+        width: 100%;
+    }
+}
+
 @media (max-width: 1024px) {
     .semester {
         flex: 1 1 calc(50% - 40px);
     }
     h1 {
         font-size: 2rem;
+    }
+    .nav-button,
+    #semester-buttons-container .semester-button {
+        padding: 10px 20px;
+        font-size: 1rem;
     }
 }
 
@@ -147,6 +466,11 @@ h1 {
         padding: 10px 12px;
         font-size: 0.9rem;
     }
+
+    .schedule-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -154,11 +478,22 @@ h1 {
         font-size: 1.5rem;
     }
 
-    #course-tracker-container {
-        padding: 15px;
+    #app-container {
+        padding: 10px;
     }
 
     #course-tracker {
         gap: 15px;
+    }
+
+    .nav-button,
+    #semester-buttons-container .semester-button {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+
+    .schedule-footer button {
+        width: 100%;
+        box-sizing: border-box;
     }
 }
