@@ -439,3 +439,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // No se llama populateSemesterSelect() aquí, ya que los botones se renderizan en showView('schedule')
     showView('progress'); // Iniciar en la vista del rastreador
 });
+    showView('progress'); // Iniciar en la vista del rastreador
+});
+
